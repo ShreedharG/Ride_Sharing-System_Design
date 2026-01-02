@@ -234,6 +234,17 @@ public:
         ride->setStatus(RideCycle::ONGOING);
     }
 
+    void cancelRide(Ride* ride){
+        if(!ride)
+            throw invalid_argument("Ride is null");
+        if(ride->getStatus() != RideCycle::WAITING)
+            throw invalid_argument("Only WAITING rides can be cancelled");
+
+        ride->setStatus(RideCycle::CANCELLED);
+        if(ride->getDriver())
+            ride->getDriver()->updateAvailability(true);
+    }
+
     void startRide(Ride* ride) {
         if(ride->getStatus() != RideCycle::WAITING)
             throw invalid_argument("Ride not in WAITING");
