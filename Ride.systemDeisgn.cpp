@@ -17,25 +17,9 @@ struct Location {
     }
 };
 
-enum class Gender {
-    MALE,
-    FEMALE,
-    OTHER
-};
-
-enum class VehicleType {
-    BIKE,
-    AUTO,
-    SEDAN,
-    SUV
-};
-
-enum class RideCycle {
-    ONGOING,
-    CANCELLED,
-    COMPLETED,
-    WAITING
-};
+enum class Gender { MALE, FEMALE, OTHER };
+enum class VehicleType { BIKE, AUTO, SEDAN, SUV };
+enum class RideCycle { ONGOING, CANCELLED, COMPLETED, WAITING };
 
 class Vehicle {
 private:
@@ -138,11 +122,9 @@ public:
         if(rating < 1.0) rating = 1.0;
     }
 
-    void assignVehicle(Vehicle* v) {
-        this->vehicle = v;
-    }
-    
+    void assignVehicle(Vehicle* v) { this->vehicle = v; }
     void updateAvailability ( bool newAvailability ) { availability = newAvailability; }
+
     string getRole() const override { return "DRIVER"; }
 };
 
@@ -208,17 +190,6 @@ private:
     Location startLoc;
     Location endLoc;
 
-    void calculateFare(){
-        if(status != RideCycle::COMPLETED)
-            throw logic_error("Ride must first be completed");
-        
-        if(!driver || !driver->getVehicle())
-            throw logic_error("Driver information insufficiet");
-        
-        baseFareCalculator* calculator = getBaseFare(driver->getVehicle()->getType());
-        payment = calculator->calculate(rideDistance);
-    }
-
 public:
     Ride(const string& id,Rider* r, const Location& startingLocation, const Location& endingLocation) :
         rideID(id), rider(r), driver(nullptr), status( RideCycle::WAITING ), payment(0.0), rideDistance(0.0), 
@@ -229,47 +200,64 @@ public:
                 throw invalid_argument("Ride must have different start and end locations");
         }
     
+    // Setters
+    void setDriver(Driver* d){ driver = d; }
+    void setStatus(RideCycle newStatus){ status = newStatus; }
+    void setPayment(double amount){ payment = amount; }
+
+    // Getters
     string getRideID() const { return rideID; }
+    Driver* getDriver() const { return driver; }
+    Rider* getRider() const { return rider; }
+    double getPayment() const { return payment; }
     RideCycle getStatus() const { return status; }
+    Location getStartLocation() const { return startLoc; }
+    Location getEndLocation() const { return endLoc; }
+};
 
-    void assignDriver(Driver* d){
-        if(status != RideCycle::WAITING)
-            throw logic_error("Driver can be assigned only to waiting riders");
-        
-        if(!d || !d->getAvailability())
-            throw logic_error("No driver available");
-        
-        driver = d;
+class RideService {
+public:
+    Ride* createRide( const string& rideId,Rider* rider,const Location& startLoc,const Location& endLoc){
+        return new Ride(rideId, rider, startLoc, endLoc);
+    }
+
+    void assignDriverToRide(Ride* ride, Driver* driver){
+        if(!ride)
+            throw invalid_argument("Ride is null");
+        if(!driver || !driver->getAvailability())
+            throw invalid_argument("Driver is not available");
+        if(ride->getStatus() != RideCycle::WAITING)
+            throw invalid_argument("Ride is not in WAITING status");
+
+        ride->setDriver(driver);
         driver->updateAvailability(false);
+        ride->setStatus(RideCycle::ONGOING);
     }
 
-    void startRide(){
-        if(status != RideCycle::WAITING)
-            throw logic_error("Ride can only be started after WAITING");
-        if(!driver)
-            throw logic_error("Cannot start without driver");
-
-        status = RideCycle::ONGOING;
+    void startRide(Ride* ride) {
+        if(ride->getStatus() != RideCycle::WAITING)
+            throw invalid_argument("Ride not in WAITING");
+        ride->setStatus(RideCycle::ONGOING);
     }
 
-    void cancelRide(){
-        if(status != RideCycle::WAITING)
-            throw logic_error("Only waiting rides can be cancelled");
-        
-        status = RideCycle::CANCELLED;
+    void completeRide(Ride* ride){
+        if(!ride)
+            throw invalid_argument("Ride is null");
+        if(ride->getStatus() != RideCycle::ONGOING)
+            throw invalid_argument("Ride is not in ONGOING status");
 
-        if(driver){
-            driver->updateAvailability(true);
-        }
-    }
-    
-    void completeRide(){
-        if(status != RideCycle::ONGOING)
-            throw logic_error("Only ONGOING rides can be completed");
-        
-        status = RideCycle::COMPLETED;
-        driver->updateAvailability(true);
-        
-        calculateFare();
+        // Calculate distance (Manhattan distance for simplicity)
+        Location startLoc = ride->getStartLocation();
+        Location endLoc = ride->getEndLocation();
+        double distance = abs(endLoc.x - startLoc.x) + abs(endLoc.y - startLoc.y);
+
+        // Calculate fare
+        VehicleType vType = ride->getDriver()->getVehicle()->getType();
+        baseFareCalculator* fareCalc = getBaseFare(vType);
+        double fare = fareCalc->calculate(distance);
+
+        ride->setPayment(fare);
+        ride->setStatus(RideCycle::COMPLETED);
+        ride->getDriver()->updateAvailability(true);
     }
 };
