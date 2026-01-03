@@ -16,76 +16,6 @@ The goal of this project is **not** to build a production-ready system, but to d
 * **Enum classes for stratergic defined values - Gender, VehicleType, and RideCycle**
 
 ---
-
-## 🧱 Core Components
-
-### 1️⃣ Domain Entities
-
-| Entity    | Responsibility                                |
-| --------- | --------------------------------------------- |
-| `User`    | Abstract base for system users                |
-| `Rider`   | Represents customer requesting a ride         |
-| `Driver`  | Represents driver with vehicle & availability |
-| `Vehicle` | Vehicle metadata & type                       |
-| `Ride`    | Holds ride state and associations             |
-
-Entities are kept **lightweight** and only store **state + data**.
-
----
-
-### 2️⃣ Service Layer – `RideService`
-
-All **business workflows** and **state transitions** are handled here:
-
-* Creating rides
-* Cancelling rides
-* Assigning drivers
-* Starting rides
-* Completing rides
-* Calculating fares
-
-This keeps entities clean and reusable.
-
----
-
-### 3️⃣ Pricing Strategy
-
-Fare calculation is implemented using a **strategy-like design**:
-
-* `baseFareCalculator` (interface)
-* `baseBike`, `baseAuto`, `baseSedan`, `baseSUV`
-
-Fare is selected dynamically based on `VehicleType`.
-
----
-
-## 🔄 Ride Lifecycle
-
-A ride moves through the following states:
-
-```
-WAITING → ONGOING → COMPLETED
-        ↘
-         CANCELLED
-```
-
-State transitions are **strictly validated** in the service layer.
-
----
-
-## 🧭 High-Level Flow (Execution)
-
-### Step-by-step flow:
-
-1. Rider requests a ride
-2. `RideService` creates a `Ride`
-3. Driver is assigned (if available)
-4. Ride starts / Ride is cancelled in which case the RideCycle becomes terminated
-5. Ride completes
-6. Fare is calculated based on vehicle type & distance
-
----
-
 ## 📊 Flowchart – Ride Execution
 
 ```mermaid
@@ -223,6 +153,74 @@ classDiagram
 
 ---
 
+## 🧱 Core Components
+
+### 1️⃣ Domain Entities
+
+| Entity    | Responsibility                                |
+| --------- | --------------------------------------------- |
+| `User`    | Abstract base for system users                |
+| `Rider`   | Represents customer requesting a ride         |
+| `Driver`  | Represents driver with vehicle & availability |
+| `Vehicle` | Vehicle metadata & type                       |
+| `Ride`    | Holds ride state and associations             |
+
+Entities are kept **lightweight** and only store **state + data**.
+
+---
+
+### 2️⃣ Service Layer – `RideService`
+
+All **business workflows** and **state transitions** are handled here:
+
+* Creating rides
+* Cancelling rides
+* Assigning drivers
+* Starting rides
+* Completing rides
+* Calculating fares
+
+This keeps entities clean and reusable.
+
+---
+
+### 3️⃣ Pricing Strategy
+
+Fare calculation is implemented using a **strategy-like design**:
+
+* `baseFareCalculator` (interface)
+* `baseBike`, `baseAuto`, `baseSedan`, `baseSUV`
+
+Fare is selected dynamically based on `VehicleType`.
+
+---
+
+## 🔄 Ride Lifecycle
+
+A ride moves through the following states:
+
+```
+WAITING → ONGOING → COMPLETED
+        ↘
+         CANCELLED
+```
+
+State transitions are **strictly validated** in the service layer.
+
+---
+
+## 🧭 High-Level Flow (Execution)
+
+### Step-by-step flow:
+
+1. Rider requests a ride
+2. `RideService` creates a `Ride`
+3. Driver is assigned (if available)
+4. Ride starts / Ride is cancelled in which case the RideCycle becomes terminated
+5. Ride completes
+6. Fare is calculated based on vehicle type & distance
+
+---
 
 ## 🧪 Example Usage (Conceptual)
 
