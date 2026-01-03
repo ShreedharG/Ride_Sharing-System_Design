@@ -129,8 +129,8 @@ classDiagram
     class baseSUV
 
     %% ===== Inheritance =====
-    User <|-- Rider
-    User <|-- Driver
+    Rider <|-- User
+    Driver <|-- User
 
     baseFareCalculator <|-- baseBike
     baseFareCalculator <|-- baseAuto
