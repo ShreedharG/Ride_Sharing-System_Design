@@ -142,6 +142,7 @@ classDiagram
     Ride --> Rider
     Ride --> Driver
     Ride --> Location
+    Ride --> RideCycle
     RideService --> Ride
     RideService --> Driver
     RideService --> baseFareCalculator
